@@ -103,6 +103,16 @@
   font-size: calc(10px + 0.5vmin);
   font-weight: 300;
 }
+.post-comments .post-comment .side-by-side-edit {
+  display: flex;
+}
+
+.post-comments .post-comment .comment-info .comment-status {
+  font-style: italic;
+  margin-left: 0.5vmin;
+  font-size: calc(9px + 0.5vmin);
+  font-weight: 300;
+}
 
 #comment-form {
   width: 100%;

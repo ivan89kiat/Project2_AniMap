@@ -22,6 +22,8 @@ export default function Post(props) {
   const [comment, setComment] = useState("");
   const [reactions, setReactions] = useState({});
   const [postComments, setPostComments] = useState({});
+  const [editComment, setEditComment] = useState(false);
+  const [editCommentKey, setEditCommentKey] = useState("");
 
   useEffect(() => {
     const postRef = ref(database, `${POSTS_DATABASE_KEY}/${postId}`);
@@ -68,6 +70,34 @@ export default function Post(props) {
     e.preventDefault();
     writeData();
     setComment("");
+  };
+
+  const handleEdit = (e) => {
+    let commentKey = e.target.id;
+    if (user.email === postComments[commentKey].user) {
+      setComment(postComments[commentKey].userComment);
+      setEditComment(true);
+      setEditCommentKey(commentKey);
+    }
+  };
+
+  const handleEditComment = (e) => {
+    e.preventDefault();
+    const editDate = new Date().toLocaleString();
+    const edited = "edited";
+    const postsCommentsRef = ref(
+      database,
+      `${POSTS_DATABASE_KEY}/${postId}/${COMMENTS_DATABASE_KEY}/${editCommentKey}`
+    );
+    update(postsCommentsRef, {
+      status: edited,
+      user: user.email,
+      userComment: comment,
+      userCommentDate: editDate,
+    });
+    setEditComment(false);
+    setComment("");
+    setEditCommentKey("");
   };
 
   const renderReactionButtons = () => {
@@ -117,10 +147,26 @@ export default function Post(props) {
       comments = [
         ...comments,
         <div className="post-comment" key={commentKey}>
-          {postComments[commentKey].userComment} {""}
+          <div>
+            <div className="side-by-side-edit">
+              {postComments[commentKey].userComment} {""}
+            </div>{" "}
+            <div className="edit-btn">
+              {user.email === postComments[commentKey].user ? (
+                <Button id={commentKey} name="edit" onClick={handleEdit}>
+                  Edit
+                </Button>
+              ) : null}
+            </div>
+          </div>
           <div className="comment-info">
             {postComments[commentKey].user} {""}{" "}
             {postComments[commentKey].userCommentDate}
+            <div className="comment-status">
+              {postComments[commentKey].status
+                ? postComments[commentKey].status
+                : null}
+            </div>
           </div>
         </div>,
       ];
@@ -157,7 +203,10 @@ export default function Post(props) {
       </Modal.Body>
       <Modal.Footer>
         {user.email && (
-          <Form id="comment-form" onSubmit={handleSendComment}>
+          <Form
+            id="comment-form"
+            onSubmit={editComment ? handleEditComment : handleSendComment}
+          >
             <Form.Control
               as="textarea"
               rows={2}
@@ -167,7 +216,7 @@ export default function Post(props) {
             />
             <div className="side-by-side-btns">
               <Button type="submit" variant="primary">
-                Send comment
+                {editComment ? `Edit Comment` : `Send comment`}
               </Button>
               <Button
                 type={null}
